@@ -40,9 +40,11 @@ class AntNestEnv(gym.Env):
         if self.viewer is None:
             self.viewer = rendering.Viewer(width, height)
 
-        #x = self.x
-        x=100
-        render_ant(self.viewer, 0, (x, 100))
+        x = self.x
+        angle = self.t / 100
+        #x=100
+
+        render_ant(self.viewer, angle, (x, 100))
         square = rendering.FilledPolygon([(10+x,10), (10+x,20), (20+x,20), (20+x,10)])
         square.set_color(0, 0, 255)
         self.viewer.add_onetime(square)
