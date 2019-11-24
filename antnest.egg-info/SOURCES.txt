@@ -1,0 +1,7 @@
+README.md
+setup.py
+antnest.egg-info/PKG-INFO
+antnest.egg-info/SOURCES.txt
+antnest.egg-info/dependency_links.txt
+antnest.egg-info/requires.txt
+antnest.egg-info/top_level.txt
