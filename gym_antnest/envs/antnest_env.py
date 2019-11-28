@@ -1,9 +1,14 @@
+from .antworld import AntWorld, CELL_FOOD
+from .spritesheet import SpriteSheet
+
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
 from gym.envs.classic_control import rendering
 import os
+
+FOOD_COLOR = (0.26, 0.53, 0.96)
 
 class AntNestEnv(gym.Env):
     metadata = {'render.modes': ['human']}
@@ -12,10 +17,8 @@ class AntNestEnv(gym.Env):
         self.reset()
         self.t = 0
         self.viewer = None
-        self.world_x = 40
-        self.world_y = 40
-        #self.ant = make_ant()
         self.ant_seq = 0
+        self.world = AntWorld()
 
     def step(self, action):
         reward = 1
@@ -38,20 +41,23 @@ class AntNestEnv(gym.Env):
         print("render %s" % self.x)
         width = 600
         height = width
-        scale_x = width / self.world_x
-        scale_y = height / self.world_y
+        scale_x = width / self.world.width
+        scale_y = height / self.world.height
 
         if self.viewer is None:
             self.viewer = rendering.Viewer(width, height)
 
-        x = self.x
-        angle = self.t / 100
         #x=100
 
+        for obj_type, pt in self.world.objects:
+            world_x, world_y = pt
+            x , y = world_x * scale_x, world_y * scale_y
+            if obj_type == CELL_FOOD:
+                circle(self.viewer, pt, 7, FOOD_COLOR)
+
+        x = self.x
+        angle = self.t / 100
         render_ant(self.viewer, self.ant_seq, angle, (x, 100))
-        square = rendering.FilledPolygon([(10+x,10), (10+x,20), (20+x,20), (20+x,10)])
-        square.set_color(0, 0, 255)
-        self.viewer.add_onetime(square)
 
         return self.viewer.render(return_rgb_array=mode=='rgb_array')
 
@@ -81,36 +87,6 @@ def render_ant(v, seq, angle, pt):
     # abdomen (back)
     #back_pt = (x - 10, y) 
     #circle(v, back_pt, head_radius * 1.1, color=ant_color)
-
-import pyglet
-
-class SpriteSheet(rendering.Image):
-    # Source to base class:
-    #   https://github.com/openai/gym/blob/master/gym/envs/classic_control/rendering.py
-    # About sprite sheets:
-    #   https://pyglet.readthedocs.io/en/stable/programming_guide/image.html
-    def __init__(self, fname, width, height, rows, cols):
-        """
-        rows, cols: rows and columns of sub-images in the spritesheet.
-        width, height: target size for image.
-        """
-        rendering.Image.__init__(self, fname, width, height)
-        self.sprite_sheet = self.img # set during Image.__init__
-        self.sub_images = pyglet.image.ImageGrid(self.sprite_sheet, rows, cols)
-        self.last_sprite = 0 # index of last sprite
-        self.select_sprite(0)
-    
-    def select_sprite(self, n):
-        """
-        Select one of the sprites from the sprite sheet.
-        n: A number between 0 and (rows * cols)
-        """
-        print('subimages',len(self.sub_images))
-        self.img = self.sub_images[n]
-        self.last_sprite = n
-    
-    def next_sprite(self):
-        self.last_sprite = (self.last_sprite + 1) % len(self.sub_images)
 
 def make_ant():
     # Ant using an animated spritesheet
@@ -149,8 +125,7 @@ def make_ant1():
     ant.set_color(*ant_color)
     return ant
 
-
-def circle(pt, r, color):
+def circle(v, pt, r, color):
     pos = rendering.Transform(translation=pt)
-    v.draw_circle(r, 20, color=color).add_attr(pos)
+    v.draw_circle(r, 15, color=color).add_attr(pos)
 
