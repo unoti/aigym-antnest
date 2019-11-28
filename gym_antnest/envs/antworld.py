@@ -1,3 +1,6 @@
+from .critter import Critter
+
+import numpy as np
 import random
 import math
 
@@ -16,6 +19,7 @@ class AntWorld:
         self.objects = [] # [(object_type, (x, y))] where object_type is CELL_FOOD, etc.
         self._contents = [CELL_EMPTY] * self.height * self.width
         self.make_food_cluster()
+        self.ant = Critter(self._random_pt())
 
     def make_food_cluster(self):
         center = self._random_pt()
@@ -27,26 +31,26 @@ class AntWorld:
 
     def _put(self, pt, object_type):
         """Put an object into a spot in the world."""
-        self._contents[self._index(pt)] = object_type
+        self._contents[int(self._index(pt))] = object_type
         self.objects.append((object_type, pt))
 
     def _cell(self, pt):
         """Returns the contents of the given world coordinates."""
-        return self._contents[self._index(pt)]
+        return self._contents[int(self._index(pt))]
     
     def _index(self, pt):
         x, y = pt
         return y * self.width + x
 
     def _random_pt(self):
-        return (random.randint(0, self.width), random.randint(0, self.height))
+        return np.array((random.randint(0, self.width), random.randint(0, self.height)))
 
     def _random_offset(self, pt, radius):
         cx, cy = pt
-        angle = random.uniform(0, math.pi * 2)
+        angle = random.uniform(0, np.pi * 2)
         r = random.uniform(0, radius)
-        x = math.floor(r * math.cos(angle)) + cx
-        y = math.floor(r * math.sin(angle)) + cy
+        x = round(r * np.cos(angle) + cx)
+        y = round(r * np.sin(angle) + cy)
         return x, y
 
     def _in_bounds(self, pt):

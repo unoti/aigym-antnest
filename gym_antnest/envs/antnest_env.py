@@ -19,6 +19,9 @@ class AntNestEnv(gym.Env):
         self.viewer = None
         self.ant_seq = 0
         self.world = AntWorld()
+        self.pixels_width = 600
+        self.pixels_height = self.pixels_width
+        self.scale = np.array([self.pixels_width / self.world.width, self.pixels_height / self.world.height])
 
     def step(self, action):
         reward = 1
@@ -38,26 +41,15 @@ class AntNestEnv(gym.Env):
 
     def render(self, mode='human', close=False):
         # https://github.com/openai/gym/blob/master/gym/envs/classic_control/rendering.py
-        print("render %s" % self.x)
-        width = 600
-        height = width
-        scale_x = width / self.world.width
-        scale_y = height / self.world.height
-
         if self.viewer is None:
-            self.viewer = rendering.Viewer(width, height)
-
-        #x=100
+            self.viewer = rendering.Viewer(self.pixels_width, self.pixels_height)
 
         for obj_type, pt in self.world.objects:
-            world_x, world_y = pt
-            x , y = world_x * scale_x, world_y * scale_y
             if obj_type == CELL_FOOD:
-                circle(self.viewer, pt, 7, FOOD_COLOR)
+                circle(self.viewer, pt * self.scale, 7, FOOD_COLOR)
 
-        x = self.x
-        angle = self.t / 100
-        render_ant(self.viewer, self.ant_seq, angle, (x, 100))
+        ant = self.world.ant
+        render_ant(self.viewer, self.ant_seq, ant.angle, ant.pos * self.scale)
 
         return self.viewer.render(return_rgb_array=mode=='rgb_array')
 
