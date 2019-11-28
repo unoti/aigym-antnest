@@ -1,0 +1,3 @@
+__pycache__/
+*.py[cod]
+gym_antnest/envs/__pycache__/
