@@ -1,13 +1,14 @@
-from .vec2d import random_angle, polar_from_pt, vec_dir
+from .vec2d import random_angle, polar_from_pt, vec_dir, clamp
 
 
 class Critter:
     """A mobile object that can move around the world.
     """
-    def __init__(self, pt):
+    def __init__(self, pt, world):
         self.pos = pt
         self.angle = 0 # Angle in radians that we're facing.
         self.dir = None # Normalized vector in the direction we're facing. Will be set below.
+        self.world = world
         self.set_angle(random_angle())
     
     def turn(self, a):
@@ -22,4 +23,4 @@ class Critter:
     def forward(self, distance=1):
         """Move forward in the direction we're facing."""
         delta = self.dir * distance
-        self.pos += delta
+        self.pos = clamp(self.pos + delta, self.world.width, self.world.height)

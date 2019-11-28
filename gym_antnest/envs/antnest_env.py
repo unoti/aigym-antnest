@@ -9,6 +9,7 @@ from gym.envs.classic_control import rendering
 import os
 
 FOOD_COLOR = (0.26, 0.53, 0.96)
+ANT_TURN_RATE = 0.2 # Ant turn speed in radians per step
 
 class AntNestEnv(gym.Env):
     metadata = {'render.modes': ['human']}
@@ -22,8 +23,16 @@ class AntNestEnv(gym.Env):
         self.pixels_width = 600
         self.pixels_height = self.pixels_width
         self.scale = np.array([self.pixels_width / self.world.width, self.pixels_height / self.world.height])
+        self.action_methods = [
+            self._action_left,
+            self._action_right,
+            self._action_forward,
+            self._action_pause
+        ]
 
     def step(self, action):
+        assert action < len(self.action_methods)
+        self.action_methods[action]()
         reward = 1
         done = False
         observation = None
@@ -57,6 +66,18 @@ class AntNestEnv(gym.Env):
         pass
 
     def seed(self):
+        pass
+
+    def _action_left(self):
+        self.world.ant.turn(ANT_TURN_RATE)
+    
+    def _action_right(self):
+        self.world.ant.turn(-ANT_TURN_RATE)
+    
+    def _action_forward(self):
+        self.world.ant.forward()
+    
+    def _action_pause(self):
         pass
 
 def render_ant(v, seq, angle, pt):

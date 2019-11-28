@@ -52,6 +52,13 @@ def relative_angle(p0, dir0, p1):
     #print('angle0=%s angle1=%s delta=%s' % (to_deg(angle0), to_deg(angle1), to_deg(delta_angle)))
     return delta_angle
 
+def clamp(pt, width, height):
+    pt[0] = max(pt[0], 0)
+    pt[1] = max(pt[1], 0)
+    pt[0] = min(pt[0], width)
+    pt[1] = min(pt[1], height)
+    return pt
+
 def test_relative_angle():
     p0 = np.array((1,1))
     p0_facing = np.array((20, 100)) # Looking a little to the right of the top left corner.

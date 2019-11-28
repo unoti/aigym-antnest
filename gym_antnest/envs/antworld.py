@@ -19,7 +19,7 @@ class AntWorld:
         self.objects = [] # [(object_type, (x, y))] where object_type is CELL_FOOD, etc.
         self._contents = [CELL_EMPTY] * self.height * self.width
         self.make_food_cluster()
-        self.ant = Critter(self._random_pt())
+        self.ant = Critter(self._random_pt(), self)
 
     def make_food_cluster(self):
         center = self._random_pt()
