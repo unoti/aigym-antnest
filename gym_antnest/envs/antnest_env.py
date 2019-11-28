@@ -1,5 +1,6 @@
 from .antworld import AntWorld, CELL_FOOD
 from .spritesheet import SpriteSheet
+from .vec2d import lerp_3d
 
 import gym
 from gym import error, spaces, utils
@@ -8,7 +9,10 @@ import numpy as np
 from gym.envs.classic_control import rendering
 import os
 
-FOOD_COLOR = (0.26, 0.53, 0.96)
+COLOR_FOOD = np.array((0.376, 0.871, 0.165))
+COLOR_SCENT = np.array((0.667, 0.286, 0.902))
+COLOR_WHITE = np.array((1,1,1))
+
 ANT_TURN_RATE = 0.2 # Ant turn speed in radians per step
 
 class AntNestEnv(gym.Env):
@@ -32,7 +36,11 @@ class AntNestEnv(gym.Env):
 
     def step(self, action):
         assert action < len(self.action_methods)
+        # Invoke the chosen action
         self.action_methods[action]()
+
+        self.world.update()
+
         reward = 1
         done = False
         observation = None
@@ -53,9 +61,14 @@ class AntNestEnv(gym.Env):
         if self.viewer is None:
             self.viewer = rendering.Viewer(self.pixels_width, self.pixels_height)
 
-        for obj_type, pt in self.world.objects:
-            if obj_type == CELL_FOOD:
-                circle(self.viewer, pt * self.scale, 7, FOOD_COLOR)
+        # Scent trails
+        for pt, strength in self.world.scent_cells():
+            color = lerp_3d(COLOR_WHITE, COLOR_SCENT, strength)
+            circle(self.viewer, pt * self.scale, 4, color)
+
+        # Foods
+        for pt in self.world.foods:
+            circle(self.viewer, pt * self.scale, 7, COLOR_FOOD)
 
         ant = self.world.ant
         render_ant(self.viewer, self.ant_seq, ant.angle, ant.pos * self.scale)

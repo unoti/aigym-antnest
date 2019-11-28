@@ -6,7 +6,7 @@ def test_antnest():
     env.reset()
     actions = [0,1,2,3]
 
-    for i in range(500):
+    for i in range(1500):
         action = random.choice(actions)
         state, reward, done, info = env.step(action)
         env.render()

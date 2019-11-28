@@ -9,30 +9,61 @@ WORLD_HEIGHT = 100
 FOODS_PER_CLUSTER = 15
 FOOD_CLUSTER_RADIUS = 18
 
-CELL_EMPTY = ' '
+SCENT_STRENGTH = 0.3 # How strong scent is when an ant drops a trail
+SCENT_DECAY = 1 / 1500 # Number of steps it takes for a scent to fully decay.
+SCENT_MAX = 1 # Strongest a scent can be within a cell.
+
 CELL_FOOD = 'F'
 
 class AntWorld:
     def __init__(self):
         self.width = WORLD_WIDTH
         self.height = WORLD_HEIGHT
-        self.objects = [] # [(object_type, (x, y))] where object_type is CELL_FOOD, etc.
-        self._contents = [CELL_EMPTY] * self.height * self.width
+        self.foods = [] # [(x, y)] locations of foods.
+        self._contents = [None] * self.height * self.width
         self.make_food_cluster()
         self.ant = Critter(self._random_pt(), self)
+        self._scent_trails = np.zeros((self.height, self.width))
+
+    def update(self):
+        self._update_scent_trail()
 
     def make_food_cluster(self):
         center = self._random_pt()
         for _ in range(FOODS_PER_CLUSTER):
             pt = self._random_offset(center, FOOD_CLUSTER_RADIUS)
-            if not self._in_bounds(pt) or self._cell(pt) != CELL_EMPTY:
+            if not self._in_bounds(pt) or self._cell(pt) != None:
                 continue
-            self._put(pt, CELL_FOOD)
+            self.place_food(pt)
+
+    def place_food(self, pt):
+        pt = np.array(pt)
+        self._put(pt, CELL_FOOD)
+        self.foods.append(pt)
+    
+    def scent_cells(self):
+        """Returns a list of cells that contain scents, like [((x,y), magnitude)]"""
+        non_zero_cells = np.argwhere(self._scent_trails)
+        s = self._scent_trails
+        return [((pt[1], pt[0]), s[pt[0]][pt[1]]) for pt in np.argwhere(s)]
+    
+    def _update_scent_trail(self):
+        self._increase_scent(self.ant.pos)
+        # Decay the scents linearly.  If any go below zero, make them zero.
+        self._scent_trails = np.maximum(0, self._scent_trails - SCENT_DECAY)
+
+    def _increase_scent(self, pt):
+        # Increase scent marker where the ant currently is.
+        row, col = int(pt[1]), int(pt[0])
+        row = max(0, row)
+        col = max(0, col)
+        row = min(row, self.height - 1)
+        col = min(col, self.width - 1)
+        self._scent_trails[row][col] = min(self._scent_trails[row][col] + SCENT_STRENGTH, SCENT_MAX)
 
     def _put(self, pt, object_type):
         """Put an object into a spot in the world."""
         self._contents[int(self._index(pt))] = object_type
-        self.objects.append((object_type, pt))
 
     def _cell(self, pt):
         """Returns the contents of the given world coordinates."""

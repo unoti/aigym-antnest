@@ -53,11 +53,21 @@ def relative_angle(p0, dir0, p1):
     return delta_angle
 
 def clamp(pt, width, height):
+    """Returns a point that is constrained to being >0 and up to the given width and height."""
     pt[0] = max(pt[0], 0)
     pt[1] = max(pt[1], 0)
     pt[0] = min(pt[0], width)
     pt[1] = min(pt[1], height)
     return pt
+
+def lerp_3d(a, b, f):
+    """
+    Linear interpolation between 2 3d vectors.
+    f: a scalar from 0 to 1.
+    If f=0 then a is returned, if f=1 then b is returned.
+    A blending of a and b is returned for values of f between 0-1.
+    """
+    return (1-f) * a + f * b
 
 def test_relative_angle():
     p0 = np.array((1,1))
