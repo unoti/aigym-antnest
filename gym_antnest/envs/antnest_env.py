@@ -33,6 +33,7 @@ class AntNestEnv(gym.Env):
             self._action_forward,
             self._action_pause
         ]
+        self.active_ant = 0 # We will cycle through the ants giving each one a turn.
 
     def step(self, action):
         assert action < len(self.action_methods)
@@ -48,8 +49,7 @@ class AntNestEnv(gym.Env):
         self.t += 1
         self.x += 1
         self.state = np.array((self.x, 0))
-
-        #self.ant_seq = (self.ant_seq + 1) % 4
+        self.active_ant = (self.active_ant + 1) % len(self.world.ants)
         return [self.state, reward, done, info]
 
     def reset(self):
@@ -70,8 +70,9 @@ class AntNestEnv(gym.Env):
         for pt in self.world.foods:
             circle(self.viewer, pt * self.scale, 7, COLOR_FOOD)
 
-        ant = self.world.ant
-        render_ant(self.viewer, self.ant_seq, ant.angle, ant.pos * self.scale)
+        # Ants
+        for ant in self.world.ants:
+            render_ant(self.viewer, ant.angle, ant.pos * self.scale)
 
         return self.viewer.render(return_rgb_array=mode=='rgb_array')
 
@@ -82,23 +83,23 @@ class AntNestEnv(gym.Env):
         pass
 
     def _action_left(self):
-        self.world.ant.turn(ANT_TURN_RATE)
+        self.world.ants[self.active_ant].turn(ANT_TURN_RATE)
     
     def _action_right(self):
-        self.world.ant.turn(-ANT_TURN_RATE)
+        self.world.ants[self.active_ant].turn(-ANT_TURN_RATE)
     
     def _action_forward(self):
-        self.world.ant.forward()
+        self.world.ants[self.active_ant].forward()
     
     def _action_pause(self):
         pass
 
-def render_ant(v, seq, angle, pt):
+def render_ant(v, angle, pt):
     head_radius = 7
     x, y = pt
     body_pos = rendering.Transform(translation=(x, y), rotation=angle)
     ant = make_ant()
-    ant.select_sprite(seq)
+    ant.select_sprite(0) # Later' we'll cycle multiple sprites to animate the ant legs as they walk.
     ant.add_attr(body_pos)
     v.add_onetime(ant)
 

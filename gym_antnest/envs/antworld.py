@@ -8,6 +8,7 @@ WORLD_WIDTH = 100
 WORLD_HEIGHT = 100
 FOODS_PER_CLUSTER = 15
 FOOD_CLUSTER_RADIUS = 18
+NUM_ANTS = 5
 
 SCENT_STRENGTH = 0.3 # How strong scent is when an ant drops a trail
 SCENT_DECAY = 1 / 1500 # Number of steps it takes for a scent to fully decay.
@@ -22,7 +23,7 @@ class AntWorld:
         self.foods = [] # [(x, y)] locations of foods.
         self._contents = [None] * self.height * self.width
         self.make_food_cluster()
-        self.ant = Critter(self._random_pt(), self)
+        self.ants = [Critter(self._random_pt(), self) for _ in range(NUM_ANTS)]
         self._scent_trails = np.zeros((self.height, self.width))
 
     def update(self):
@@ -48,7 +49,8 @@ class AntWorld:
         return [((pt[1], pt[0]), s[pt[0]][pt[1]]) for pt in np.argwhere(s)]
     
     def _update_scent_trail(self):
-        self._increase_scent(self.ant.pos)
+        for ant in self.ants:
+            self._increase_scent(ant.pos)
         # Decay the scents linearly.  If any go below zero, make them zero.
         self._scent_trails = np.maximum(0, self._scent_trails - SCENT_DECAY)
 
